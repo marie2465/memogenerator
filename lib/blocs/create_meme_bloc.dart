@@ -8,7 +8,7 @@ class CreateMemeBloc {
 
   void addNewText() {
     final newMemetext = MemeText.create();
-    memeTextSubject.add([...memeTextSubject.value,newMemetext]);
+    memeTextSubject.add([...memeTextSubject.value, newMemetext]);
     selectedMemeTextSubject.add(newMemetext);
   }
 
@@ -39,9 +39,51 @@ class CreateMemeBloc {
   Stream<MemeText?> observeSelectedMemeText() =>
       selectedMemeTextSubject.distinct();
 
+  Stream<List<MemeTextWithSelection>> observeMemeTextsWithSelection() {
+    return Rx.combineLatest2<List<MemeText>, MemeText?,
+        List<MemeTextWithSelection>>(
+      observeMemeText(),
+      observeSelectedMemeText(),
+      (memeTexts, selectedMemeText) {
+        return memeTexts.map((memeText) {
+          return MemeTextWithSelection(
+            memeText: memeText,
+            selected: memeText.id == selectedMemeText?.id,
+          );
+        }).toList();
+      },
+    );
+  }
+
   void dispose() {
     memeTextSubject.close();
     selectedMemeTextSubject.close();
+  }
+}
+
+class MemeTextWithSelection {
+  final MemeText memeText;
+  final bool selected;
+
+  MemeTextWithSelection({
+    required this.memeText,
+    required this.selected,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MemeTextWithSelection &&
+          runtimeType == other.runtimeType &&
+          memeText == other.memeText &&
+          selected == other.selected;
+
+  @override
+  int get hashCode => memeText.hashCode ^ selected.hashCode;
+
+  @override
+  String toString() {
+    return 'MemeTextWithSelection{text: $memeText, selected: $selected}';
   }
 }
 
