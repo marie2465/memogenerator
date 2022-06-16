@@ -1,5 +1,5 @@
 import 'package:image_picker/image_picker.dart';
-import 'package:memogenerator/data/repository/memes_repository.dart';
+import 'package:memogenerator/data/repositories/memes_repository.dart';
 
 import '../../data/models/meme.dart';
 

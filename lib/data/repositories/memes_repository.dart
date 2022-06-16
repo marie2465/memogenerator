@@ -16,16 +16,29 @@ class MemesRepository {
 
   MemesRepository._internal(this.spData);
 
-  Future<bool> addToMemes(final Meme meme) async {
-    final rawMemes = await spData.getMemes();
-    rawMemes.add(json.encode(meme.toJson()));
-    return await _setRawMemes(rawMemes);
+  Future<bool> addToMemes(final Meme newMeme) async {
+    final rawMemes = await getMemes();
+    final memeIndex = rawMemes.indexWhere((meme) => meme.id == newMeme.id);
+    if(memeIndex == -1){
+      rawMemes.add(newMeme);
+    } else{
+      rawMemes.removeAt(memeIndex);
+      rawMemes.insert(memeIndex, newMeme);
+    }
+    return _setMemes(rawMemes);
   }
 
   Future<bool> removeFromMemes(final String id) async {
     final memes = await getMemes();
     memes.removeWhere((meme) => meme.id == id);
     return _setMemes(memes);
+  }
+
+  Stream<List<Meme>> observeMemes() async* {
+    yield await getMemes();
+    await for (final _ in updater) {
+      yield await getMemes();
+    }
   }
 
   Future<Meme?> getMeme(final String id) async {
@@ -38,13 +51,6 @@ class MemesRepository {
     return rawMemes
         .map((rawMeme) => Meme.fromJson(json.decode(rawMeme)))
         .toList();
-  }
-
-  Stream<List<Meme>> observeMemes() async* {
-    yield await getMemes();
-    await for (final _ in updater) {
-      yield await getMemes();
-    }
   }
 
   Future<bool> _setRawMemes(final List<String> memes) async {
