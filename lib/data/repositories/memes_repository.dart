@@ -7,12 +7,12 @@ import 'package:collection/collection.dart';
 
 class MemesRepository {
   final updater = PublishSubject<Null>();
-  final SharedPreferencesData spData;
+  final SharedPreferenceData spData;
 
   static MemesRepository? _instance;
 
   factory MemesRepository.getInstance() => _instance ??=
-      MemesRepository._internal(SharedPreferencesData.getInstance());
+      MemesRepository._internal(SharedPreferenceData.getInstance());
 
   MemesRepository._internal(this.spData);
 
