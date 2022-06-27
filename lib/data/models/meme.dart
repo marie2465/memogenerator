@@ -21,5 +21,5 @@ class Meme extends Equatable {
   Map<String, dynamic> toJson() => _$MemeToJson(this);
 
   @override
-  List<Object?> get props => [id, texts];
+  List<Object?> get props => [id, texts, memePath];
 }

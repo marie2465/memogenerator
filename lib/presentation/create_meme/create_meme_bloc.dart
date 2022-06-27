@@ -8,7 +8,7 @@ import 'package:memogenerator/data/models/position.dart';
 import 'package:memogenerator/data/models/text_with_position.dart';
 import 'package:memogenerator/data/repositories/memes_repository.dart';
 import 'package:memogenerator/domain/interactors/save_meme_interactor.dart';
-import 'package:memogenerator/presentation/create_meme/models/meeme_text.dart';
+import 'package:memogenerator/presentation/create_meme/models/meme_text.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_offset.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_offset.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_selection.dart';
@@ -35,6 +35,7 @@ class CreateMemeBloc {
     final String? id,
     final String? selectedMemePath,
   }) : this.id = id ?? const Uuid().v4() {
+    print("Got id: $id");
     memePathSubject.add(selectedMemePath);
     _subscribeToNewMemTextOffset();
     _subscribeToExistentMeme();
@@ -79,8 +80,8 @@ class CreateMemeBloc {
         return memeTextOffset.id == memeText.id;
       });
       final position = Position(
-        left: memeTextPosition?.offset.dx ?? 0,
         top: memeTextPosition?.offset.dy ?? 0,
+        left: memeTextPosition?.offset.dx ?? 0,
       );
       return TextWithPosition(
           id: memeText.id, text: memeText.text, position: position);
@@ -144,14 +145,14 @@ class CreateMemeBloc {
   }
 
   void _changeMemeTextOffsetInternal(final MemeTextOffset newMemeTextOffset) {
-    final copiedMemeTextOffset = [...memeTextOffsetsSubject.value];
-    final currentMemeTextOffset = copiedMemeTextOffset.firstWhereOrNull(
+    final copiedMemeTextOffsets = [...memeTextOffsetsSubject.value];
+    final currentMemeTextOffset = copiedMemeTextOffsets.firstWhereOrNull(
         (memeTextOffset) => memeTextOffset.id == newMemeTextOffset.id);
     if (currentMemeTextOffset != null) {
-      copiedMemeTextOffset.remove(currentMemeTextOffset);
+      copiedMemeTextOffsets.remove(currentMemeTextOffset);
     }
-    copiedMemeTextOffset.add(newMemeTextOffset);
-    memeTextOffsetsSubject.add(copiedMemeTextOffset);
+    copiedMemeTextOffsets.add(newMemeTextOffset);
+    memeTextOffsetsSubject.add(copiedMemeTextOffsets);
   }
 
   void addNewText() {

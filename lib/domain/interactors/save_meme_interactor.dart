@@ -31,10 +31,10 @@ class SaveMemeInteractor {
     await memesDirectory.create(recursive: true);
     final currentFiles = memesDirectory.listSync();
 
-    final imageName = _getFileNameByPAth(imagePath);
+    final imageName = _getFileNameByPath(imagePath);
     final oldFileWithTheSameName = currentFiles.firstWhereOrNull(
       (element) {
-        return _getFileNameByPAth(element.path) == imagePath && element is File;
+        return _getFileNameByPath(element.path) == imagePath && element is File;
       },
     );
     final newImagePath = "$memePath${Platform.pathSeparator}$imageName";
@@ -57,6 +57,6 @@ class SaveMemeInteractor {
     return MemesRepository.getInstance().addToMemes(meme);
   }
 
-  String _getFileNameByPAth(String imagePath) =>
+  String _getFileNameByPath(String imagePath) =>
       imagePath.split(Platform.pathSeparator).last;
 }

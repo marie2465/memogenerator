@@ -17,15 +17,15 @@ class MemesRepository {
   MemesRepository._internal(this.spData);
 
   Future<bool> addToMemes(final Meme newMeme) async {
-    final rawMemes = await getMemes();
-    final memeIndex = rawMemes.indexWhere((meme) => meme.id == newMeme.id);
-    if(memeIndex == -1){
-      rawMemes.add(newMeme);
-    } else{
-      rawMemes.removeAt(memeIndex);
-      rawMemes.insert(memeIndex, newMeme);
+    final memes = await getMemes();
+    final memeIndex = memes.indexWhere((meme) => meme.id == newMeme.id);
+    if (memeIndex == -1) {
+      memes.add(newMeme);
+    } else {
+      memes.removeAt(memeIndex);
+      memes.insert(memeIndex, newMeme);
     }
-    return _setMemes(rawMemes);
+    return _setMemes(memes);
   }
 
   Future<bool> removeFromMemes(final String id) async {
@@ -41,11 +41,6 @@ class MemesRepository {
     }
   }
 
-  Future<Meme?> getMeme(final String id) async {
-    final memes = await getMemes();
-    return memes.firstWhereOrNull((meme) => meme.id == id);
-  }
-
   Future<List<Meme>> getMemes() async {
     final rawMemes = await spData.getMemes();
     return rawMemes
@@ -53,13 +48,18 @@ class MemesRepository {
         .toList();
   }
 
-  Future<bool> _setRawMemes(final List<String> memes) async {
-    updater.add(null);
-    return spData.setMemes(memes);
+  Future<Meme?> getMeme(final String id) async {
+    final memes = await getMemes();
+    return memes.firstWhereOrNull((meme) => meme.id == id);
   }
 
   Future<bool> _setMemes(final List<Meme> memes) async {
     final rawMemes = memes.map((meme) => json.encode(meme.toJson())).toList();
     return _setRawMemes(rawMemes);
+  }
+
+  Future<bool> _setRawMemes(final List<String> rawMemes) {
+    updater.add(null);
+    return spData.setMemes(rawMemes);
   }
 }

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:memogenerator/presentation/create_meme/create_meme_bloc.dart';
-import 'package:memogenerator/presentation/create_meme/models/meeme_text.dart';
+import 'package:memogenerator/presentation/create_meme/models/meme_text.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_offset.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_selection.dart';
 import 'package:memogenerator/resources/app_colors.dart';
@@ -77,7 +77,7 @@ class EditTextBar extends StatefulWidget implements PreferredSizeWidget {
   State<EditTextBar> createState() => _EditTextBarState();
 
   @override
-  Size get preferredSize => const Size.fromHeight(60);
+  Size get preferredSize => const Size.fromHeight(68);
 }
 
 class _EditTextBarState extends State<EditTextBar> {
@@ -92,7 +92,7 @@ class _EditTextBarState extends State<EditTextBar> {
           stream: bloc.observeSelectedMemeText(),
           builder: (context, snapshot) {
             final MemeText? selectedMemeText =
-                snapshot.hasData ? snapshot.data! : null;
+                snapshot.hasData ? snapshot.data : null;
             if (selectedMemeText?.text != controller.text) {
               final newText = selectedMemeText?.text ?? "";
               controller.text = newText;
@@ -105,7 +105,7 @@ class _EditTextBarState extends State<EditTextBar> {
               controller: controller,
               onChanged: (text) {
                 if (haveSelected) {
-                  bloc.changeMemeText(selectedMemeText.id, text);
+                  bloc.changeMemeText(selectedMemeText!.id, text);
                 }
               },
               onEditingComplete: () => bloc.deselectMemeText(),
@@ -146,8 +146,6 @@ class CreateMemePageContent extends StatefulWidget {
 }
 
 class _CreateMemePageContentState extends State<CreateMemePageContent> {
-  final FocusNode searchFieldFocusNode = FocusNode();
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -216,9 +214,9 @@ class BottomSeparator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.only(left: 16),
       height: 1,
       color: AppColors.darkGrey,
-      margin: const EdgeInsets.only(left: 16),
     );
   }
 }
@@ -234,19 +232,14 @@ class BottomMemeText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = Provider.of<CreateMemeBloc>(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => bloc.selectedMemeText(item.memeText.id),
-      child: Container(
-        height: 48,
-        width: double.infinity,
-        alignment: Alignment.centerLeft,
-        color: item.selected ? AppColors.darkGrey16 : null,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Text(
-          item.memeText.text,
-          style: const TextStyle(fontSize: 16, color: AppColors.darkGrey),
-        ),
+    return Container(
+      height: 48,
+      alignment: Alignment.centerLeft,
+      color: item.selected ? AppColors.darkGrey16 : null,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        item.memeText.text,
+        style: const TextStyle(fontSize: 16, color: AppColors.darkGrey),
       ),
     );
   }
@@ -273,7 +266,7 @@ class MemeCanvasWidget extends StatelessWidget {
               StreamBuilder<String?>(
                   stream: bloc.observeMemePath(),
                   builder: (context, snapshot) {
-                    final path = snapshot.hasData ? snapshot.data! : null;
+                    final path = snapshot.hasData ? snapshot.data : null;
                     if (path == null) {
                       return Container(color: Colors.white);
                     }
