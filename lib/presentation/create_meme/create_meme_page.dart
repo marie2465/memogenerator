@@ -105,7 +105,7 @@ class _EditTextBarState extends State<EditTextBar> {
               controller: controller,
               onChanged: (text) {
                 if (haveSelected) {
-                  bloc.changeMemeText(selectedMemeText!.id, text);
+                  bloc.changeMemeText(selectedMemeText.id, text);
                 }
               },
               onEditingComplete: () => bloc.deselectMemeText(),
@@ -232,14 +232,18 @@ class BottomMemeText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = Provider.of<CreateMemeBloc>(context);
-    return Container(
-      height: 48,
-      alignment: Alignment.centerLeft,
-      color: item.selected ? AppColors.darkGrey16 : null,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        item.memeText.text,
-        style: const TextStyle(fontSize: 16, color: AppColors.darkGrey),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: ()=> bloc.selectedMemeText(item.memeText.id),
+      child: Container(
+        height: 48,
+        alignment: Alignment.centerLeft,
+        color: item.selected ? AppColors.darkGrey16 : null,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Text(
+          item.memeText.text,
+          style: const TextStyle(fontSize: 16, color: AppColors.darkGrey),
+        ),
       ),
     );
   }
