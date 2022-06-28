@@ -12,6 +12,6 @@ Position _$PositionFromJson(Map<String, dynamic> json) => Position(
     );
 
 Map<String, dynamic> _$PositionToJson(Position instance) => <String, dynamic>{
-      'left': instance.left,
       'top': instance.top,
+      'left': instance.left,
     };

@@ -24,7 +24,17 @@ class SaveMemeInteractor {
       final meme = Meme(id: id, texts: textWithPositions);
       return MemesRepository.getInstance().addToMemes(meme);
     }
+    final newImagePath = await createNewFile(imagePath);
 
+    final meme = Meme(
+      id: id,
+      texts: textWithPositions,
+      memePath: newImagePath,
+    );
+    return MemesRepository.getInstance().addToMemes(meme);
+  }
+
+  Future<String> createNewFile(final String imagePath) async {
     final docsPath = await getApplicationDocumentsDirectory();
     final memePath = "${docsPath.absolute.path}${Platform.pathSeparator}memes";
     final memesDirectory = Directory(memePath);
@@ -41,20 +51,57 @@ class SaveMemeInteractor {
     final tempFile = File(imagePath);
     if (oldFileWithTheSameName == null) {
       await tempFile.copy(newImagePath);
-    } else {
-      final oldFileLength = await (oldFileWithTheSameName as File).length();
-      final newFileLength = await tempFile.length();
-      if(oldFileLength!=newFileLength){
-        // final indexOfLastDot = oldFileWithTheSameName.
-        // final imageNameWithoutExtension =
-      }
+      return newImagePath;
     }
-    final meme = Meme(
-      id: id,
-      texts: textWithPositions,
-      memePath: newImagePath,
+    final oldFileLength = await (oldFileWithTheSameName as File).length();
+    final newFileLength = await tempFile.length();
+    if (oldFileLength == newFileLength) {
+      return newImagePath;
+    }
+    return _createFileForSameNameButDifferentLength(
+      imageName: imageName,
+      tempFile: tempFile,
+      newImagePath: newImagePath,
+      memePath: memePath,
     );
-    return MemesRepository.getInstance().addToMemes(meme);
+  }
+
+  Future<String> _createFileForSameNameButDifferentLength({
+    required final String imageName,
+    required final File tempFile,
+    required final String newImagePath,
+    required final String memePath,
+  }) async {
+    final indexOfLastDot = imageName.lastIndexOf(".");
+    if (indexOfLastDot == -1) {
+      await tempFile.copy(newImagePath);
+      return newImagePath;
+    }
+    final extension = imageName.substring(indexOfLastDot);
+    final imageNameWithoutExtension = imageName.substring(0, indexOfLastDot);
+    final indexOfLastUnderscore = imageNameWithoutExtension.lastIndexOf("_");
+    if (indexOfLastUnderscore == -1) {
+      final correctedNewImagePath =
+          "$memePath${Platform.pathSeparator}${imageNameWithoutExtension}_1$extension";
+      await tempFile.copy(correctedNewImagePath);
+      return correctedNewImagePath;
+    }
+    final suffixNumberString =
+        imageNameWithoutExtension.substring(indexOfLastUnderscore + 1);
+    final suffixNumber = int.tryParse(suffixNumberString);
+    if (suffixNumber == null) {
+      final correctedNewImagePath =
+          "$memePath${Platform.pathSeparator}${imageNameWithoutExtension}_1$extension";
+      await tempFile.copy(correctedNewImagePath);
+      return correctedNewImagePath;
+    } else {
+      final imageNameWithoutSuffix =
+          imageNameWithoutExtension.substring(0, indexOfLastUnderscore);
+      final correctedNewImagePath =
+          "$memePath${Platform.pathSeparator}${imageNameWithoutExtension}_${suffixNumber + 1}$extension";
+      await tempFile.copy(correctedNewImagePath);
+      return correctedNewImagePath;
+    }
   }
 
   String _getFileNameByPath(String imagePath) =>
