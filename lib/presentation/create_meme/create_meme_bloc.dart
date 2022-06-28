@@ -64,7 +64,15 @@ class CreateMemeBloc {
         print("Got memeTextOffsets in constructor: $memeTextOffsets");
         memeTextsSubject.add(memeTexts);
         memeTextOffsetsSubject.add(memeTextOffsets);
-        memePathSubject.add(meme.memePath);
+        if (meme.memePath != null) {
+          getApplicationDocumentsDirectory().then((docsDirectory) {
+            final onlyImageName =
+                meme.memePath!.split(Platform.pathSeparator).last;
+            final fullImagePath =
+                "${docsDirectory.absolute.path}${Platform.pathSeparator}${SaveMemeInteractor.memePathName}${Platform.pathSeparator}$onlyImageName";
+            memePathSubject.add(fullImagePath);
+          });
+        }
       },
       onError: (error, stackTrace) =>
           print("Error in existentMemeSubscription: $error, $stackTrace"),

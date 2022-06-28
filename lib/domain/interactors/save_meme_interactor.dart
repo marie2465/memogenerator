@@ -8,6 +8,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
 
 class SaveMemeInteractor {
+  static const memePathName = "memes";
+
   static SaveMemeInteractor? _instance;
 
   factory SaveMemeInteractor.getInstance() =>
@@ -16,27 +18,26 @@ class SaveMemeInteractor {
   SaveMemeInteractor._internal();
 
   Future<bool> saveMeme({
-    required String id,
-    required List<TextWithPosition> textWithPositions,
-    required String? imagePath,
+    required final String id,
+    required final List<TextWithPosition> textWithPositions,
+    final String? imagePath,
   }) async {
     if (imagePath == null) {
       final meme = Meme(id: id, texts: textWithPositions);
       return MemesRepository.getInstance().addToMemes(meme);
     }
-    final newImagePath = await createNewFile(imagePath);
-
+    await createNewFile(imagePath);
     final meme = Meme(
       id: id,
       texts: textWithPositions,
-      memePath: newImagePath,
+      memePath: imagePath,
     );
     return MemesRepository.getInstance().addToMemes(meme);
   }
 
-  Future<String> createNewFile(final String imagePath) async {
+  Future<void> createNewFile(final String imagePath) async {
     final docsPath = await getApplicationDocumentsDirectory();
-    final memePath = "${docsPath.absolute.path}${Platform.pathSeparator}memes";
+    final memePath = "${docsPath.absolute.path}${Platform.pathSeparator}$memePathName";
     final memesDirectory = Directory(memePath);
     await memesDirectory.create(recursive: true);
     final currentFiles = memesDirectory.listSync();
@@ -51,12 +52,12 @@ class SaveMemeInteractor {
     final tempFile = File(imagePath);
     if (oldFileWithTheSameName == null) {
       await tempFile.copy(newImagePath);
-      return newImagePath;
+      return;
     }
     final oldFileLength = await (oldFileWithTheSameName as File).length();
     final newFileLength = await tempFile.length();
     if (oldFileLength == newFileLength) {
-      return newImagePath;
+      return;
     }
     return _createFileForSameNameButDifferentLength(
       imageName: imageName,
@@ -66,7 +67,7 @@ class SaveMemeInteractor {
     );
   }
 
-  Future<String> _createFileForSameNameButDifferentLength({
+  Future<void> _createFileForSameNameButDifferentLength({
     required final String imageName,
     required final File tempFile,
     required final String newImagePath,
@@ -75,7 +76,7 @@ class SaveMemeInteractor {
     final indexOfLastDot = imageName.lastIndexOf(".");
     if (indexOfLastDot == -1) {
       await tempFile.copy(newImagePath);
-      return newImagePath;
+      return;
     }
     final extension = imageName.substring(indexOfLastDot);
     final imageNameWithoutExtension = imageName.substring(0, indexOfLastDot);
@@ -84,7 +85,7 @@ class SaveMemeInteractor {
       final correctedNewImagePath =
           "$memePath${Platform.pathSeparator}${imageNameWithoutExtension}_1$extension";
       await tempFile.copy(correctedNewImagePath);
-      return correctedNewImagePath;
+      return;
     }
     final suffixNumberString =
         imageNameWithoutExtension.substring(indexOfLastUnderscore + 1);
@@ -93,14 +94,12 @@ class SaveMemeInteractor {
       final correctedNewImagePath =
           "$memePath${Platform.pathSeparator}${imageNameWithoutExtension}_1$extension";
       await tempFile.copy(correctedNewImagePath);
-      return correctedNewImagePath;
     } else {
       final imageNameWithoutSuffix =
           imageNameWithoutExtension.substring(0, indexOfLastUnderscore);
       final correctedNewImagePath =
-          "$memePath${Platform.pathSeparator}${imageNameWithoutExtension}_${suffixNumber + 1}$extension";
+          "$memePath${Platform.pathSeparator}${imageNameWithoutSuffix}_${suffixNumber + 1}$extension";
       await tempFile.copy(correctedNewImagePath);
-      return correctedNewImagePath;
     }
   }
 
