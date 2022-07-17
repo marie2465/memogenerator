@@ -309,10 +309,14 @@ class BottomMemeText extends StatelessWidget {
               onTap: () {
                 showModalBottomSheet(
                   context: context,
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
                   builder: (context) {
                     return Provider.value(
                       value: bloc,
-                      child: FontSettingsBottomSheet(
+                      child: FontSettingBottomSheet(
                         memeText: item.memeText,
                       ),
                     );
@@ -323,6 +327,15 @@ class BottomMemeText extends StatelessWidget {
                 padding: EdgeInsets.all(8),
                 child: Icon(Icons.font_download_outlined),
               ),
+            ),
+            const SizedBox(width: 4),
+            GestureDetector(
+              onTap: () {
+                bloc.deleteMemeText(item.memeText.id);
+              },
+              child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.delete_forever_outlined)),
             ),
             const SizedBox(width: 4),
           ],
@@ -496,6 +509,7 @@ class _DraggableMemeTextState extends State<DraggableMemeText> {
               text: widget.memeTextWithOffset.memeText.text,
               fontSize: widget.memeTextWithOffset.memeText.fontSize,
               color: widget.memeTextWithOffset.memeText.color,
+              fontWeight: widget.memeTextWithOffset.memeText.fontWeight,
             );
           },
         ),

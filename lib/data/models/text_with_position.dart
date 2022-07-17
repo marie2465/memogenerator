@@ -12,6 +12,8 @@ class TextWithPosition extends Equatable {
   final String text;
   final Position position;
   final double? fontSize;
+  @JsonKey(toJson: fontWeightToJson, fromJson: fontWeightFromJson)
+  final FontWeight? fontWeight;
   @JsonKey(toJson: colorToJson, fromJson: colorFromJson)
   final Color? color;
 
@@ -21,6 +23,7 @@ class TextWithPosition extends Equatable {
     required this.position,
     required this.fontSize,
     required this.color,
+    required this.fontWeight,
   });
 
   factory TextWithPosition.fromJson(Map<String, dynamic> json) =>
@@ -37,7 +40,17 @@ String? colorToJson(final Color? color) {
 }
 
 Color? colorFromJson(final String? colorString) {
-  if(colorString==null) return null;
+  if (colorString == null) return null;
   final intColor = int.tryParse(colorString, radix: 16);
-  return intColor==null? null : Color(intColor);
+  return intColor == null ? null : Color(intColor);
+}
+
+int? fontWeightToJson(final FontWeight? fontWeight) {
+  return fontWeight == null ? null : fontWeight.index;
+}
+
+FontWeight? fontWeightFromJson(final int? fontWeightIndex) {
+  if (fontWeightIndex == null) return null;
+  return FontWeight.values
+      .firstWhere((fontWeight) => fontWeight.index == fontWeightIndex);
 }
