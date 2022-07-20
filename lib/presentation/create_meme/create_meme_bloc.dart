@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'dart:ui';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:memogenerator/data/models/meme.dart';
 import 'package:memogenerator/data/models/position.dart';
 import 'package:memogenerator/data/models/text_with_position.dart';
@@ -43,6 +44,29 @@ class CreateMemeBloc {
     memePathSubject.add(selectedMemePath);
     _subscribeToNewMemTextOffset();
     _subscribeToExistentMeme();
+  }
+
+  Future<bool> isAllSaved() async {
+    final savedMeme = await MemesRepository.getInstance().getMeme(id);
+    if (savedMeme == null) {
+      return false;
+    }
+    final savedMemeTexts = savedMeme.texts.map((textWithPosition) {
+      return MemeText.createFromTextWithPosition(textWithPosition);
+    }).toList();
+    final savedMemeTextOffsets = savedMeme.texts.map((textWithPosition) {
+      return MemeTextOffset(
+        id: textWithPosition.id,
+        offset: Offset(
+          textWithPosition.position.left,
+          textWithPosition.position.top,
+        ),
+      );
+    }).toList();
+    return DeepCollectionEquality.unordered()
+            .equals(savedMemeTexts, memeTextsSubject.value) &&
+        DeepCollectionEquality.unordered()
+            .equals(savedMemeTextOffsets, memeTextOffsetsSubject.value);
   }
 
   void _subscribeToExistentMeme() {
@@ -207,13 +231,9 @@ class CreateMemeBloc {
     selectedMemeTextSubject.add(newMemeText);
   }
 
-  void deleteMemeText(final String id) {
+  void deleteMemeText(final String textId) {
     final copiedList = [...memeTextsSubject.value];
-    final index = copiedList.indexWhere((memeText) => memeText.id == id);
-    if (index == -1) {
-      return;
-    }
-    copiedList.removeAt(index);
+    copiedList.removeWhere((memeText) => memeText.id == textId);
     memeTextsSubject.add(copiedList);
   }
 

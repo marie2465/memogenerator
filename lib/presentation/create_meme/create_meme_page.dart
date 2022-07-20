@@ -41,6 +41,10 @@ class _CreateMemePageState extends State<CreateMemePage> {
       value: bloc,
       child: WillPopScope(
         onWillPop: () async {
+          final allSaved = await bloc.isAllSaved();
+          if(allSaved){
+            return true;
+          }
           final goBack = await showConfirmationExitDialog(context);
           return goBack ?? false;
         },
@@ -305,11 +309,12 @@ class BottomMemeText extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            GestureDetector(
+            BottomMemeTextAction(
+              icon: Icons.font_download_outlined,
               onTap: () {
                 showModalBottomSheet(
                   context: context,
-                  shape: RoundedRectangleBorder(
+                  shape: const RoundedRectangleBorder(
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(24)),
                   ),
@@ -323,23 +328,37 @@ class BottomMemeText extends StatelessWidget {
                   },
                 );
               },
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: Icon(Icons.font_download_outlined),
-              ),
             ),
             const SizedBox(width: 4),
-            GestureDetector(
-              onTap: () {
-                bloc.deleteMemeText(item.memeText.id);
-              },
-              child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(Icons.delete_forever_outlined)),
+            BottomMemeTextAction(
+              onTap: () => bloc.deleteMemeText(item.memeText.id),
+              icon: Icons.delete_forever_outlined,
             ),
             const SizedBox(width: 4),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class BottomMemeTextAction extends StatelessWidget {
+  const BottomMemeTextAction({
+    Key? key,
+    required this.onTap,
+    required this.icon,
+  }) : super(key: key);
+
+  final VoidCallback onTap;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Icon(icon),
       ),
     );
   }
