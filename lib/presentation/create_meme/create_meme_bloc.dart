@@ -47,7 +47,7 @@ class CreateMemeBloc {
   }
 
   Future<bool> isAllSaved() async {
-    final savedMeme = await MemesRepository.getInstance().getMeme(id);
+    final savedMeme = await MemesRepository.getInstance().getItemById(id);
     if (savedMeme == null) {
       return false;
     }
@@ -71,7 +71,7 @@ class CreateMemeBloc {
 
   void _subscribeToExistentMeme() {
     existentMemeSubscription =
-        MemesRepository.getInstance().getMeme(this.id).asStream().listen(
+        MemesRepository.getInstance().getItemById(this.id).asStream().listen(
       (meme) {
         if (meme == null) {
           return;
@@ -173,28 +173,28 @@ class CreateMemeBloc {
         );
   }
 
-  Future<bool> _saveMemeInternal(
-      final List<TextWithPosition> textWithPositions) async {
-    final imagePath = memePathSubject.value;
-    if (imagePath == null) {
-      final meme = Meme(id: id, texts: textWithPositions);
-      return MemesRepository.getInstance().addToMemes(meme);
-    }
-
-    final docsPath = await getApplicationDocumentsDirectory();
-    final memePath = "${docsPath.absolute.path}${Platform.pathSeparator}memes";
-    await Directory(memePath).create(recursive: true);
-    final imageName = imagePath.split(Platform.pathSeparator).last;
-    final newImagePath = "$memePath${Platform.pathSeparator}$imageName";
-    final tempFile = File(imagePath);
-    await tempFile.copy(newImagePath);
-    final meme = Meme(
-      id: id,
-      texts: textWithPositions,
-      memePath: newImagePath,
-    );
-    return MemesRepository.getInstance().addToMemes(meme);
-  }
+  // Future<bool> _saveMemeInternal(
+  //     final List<TextWithPosition> textWithPositions) async {
+  //   final imagePath = memePathSubject.value;
+  //   if (imagePath == null) {
+  //     final meme = Meme(id: id, texts: textWithPositions);
+  //     return MemesRepository.getInstance().addToMemes(meme);
+  //   }
+  //
+  //   final docsPath = await getApplicationDocumentsDirectory();
+  //   final memePath = "${docsPath.absolute.path}${Platform.pathSeparator}memes";
+  //   await Directory(memePath).create(recursive: true);
+  //   final imageName = imagePath.split(Platform.pathSeparator).last;
+  //   final newImagePath = "$memePath${Platform.pathSeparator}$imageName";
+  //   final tempFile = File(imagePath);
+  //   await tempFile.copy(newImagePath);
+  //   final meme = Meme(
+  //     id: id,
+  //     texts: textWithPositions,
+  //     memePath: newImagePath,
+  //   );
+  //   return MemesRepository.getInstance().addToMemes(meme);
+  // }
 
   void _subscribeToNewMemTextOffset() {
     newMemeTextOffsetSubscription = newMemeTextOffsetSubject
