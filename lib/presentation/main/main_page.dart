@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:memogenerator/data/models/meme.dart';
+import 'package:memogenerator/easter_egg/easter_egg_page.dart';
 import 'package:memogenerator/presentation/create_meme/create_meme_page.dart';
-import 'package:memogenerator/presentation/easter_egg/easter_edd_page.dart';
 import 'package:memogenerator/presentation/main/main_bloc.dart';
 import 'package:memogenerator/presentation/main/memes_with_docs_path.dart';
 import 'package:memogenerator/presentation/main/models/template_full.dart';
@@ -143,6 +143,8 @@ class CreateMemeFab extends StatelessWidget {
 }
 
 class CreatedMemesGrid extends StatelessWidget {
+  const CreatedMemesGrid({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final bloc = Provider.of<MainBloc>(context, listen: false);
@@ -205,6 +207,8 @@ class MemeGridItem extends StatelessWidget {
 }
 
 class TemplatesGrid extends StatelessWidget {
+  const TemplatesGrid({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final bloc = Provider.of<MainBloc>(context, listen: false);

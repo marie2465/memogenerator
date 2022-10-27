@@ -12,7 +12,7 @@ class EasterEggPage extends StatelessWidget {
         backgroundColor: AppColors.lemon,
         foregroundColor: AppColors.darkGrey,
       ),
-      body: RocketAnimationBody(),
+      body: const RocketAnimationBody(),
     );
   }
 }
@@ -41,7 +41,7 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
     super.initState();
     controller = AnimationController(
       vsync: this,
-      duration: Duration(seconds: animationDurationSeconds),
+      duration: const Duration(seconds: animationDurationSeconds),
     );
     controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -56,52 +56,50 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
     ).animate(
       CurvedAnimation(
         parent: controller,
-        curve: Interval(0.1, 0.8, curve: Curves.easeInCubic),
+        curve: const Interval(0.1, 0.8, curve: Curves.easeInCubic),
       ),
     );
 
     rocketScaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.0,
-    ).animate(
-      CurvedAnimation(
+    ).animate(CurvedAnimation(
         parent: controller,
-        curve: Interval(0.1, 0.8, curve: Curves.easeInCubic),
-      ),
-    );
+        curve: const Interval(0.3, 0.8, curve: Curves.easeInCubic)));
 
     fireRotationAnimation = TweenSequence(
       [
         TweenSequenceItem(
-            tween: Tween<double>(begin: 0.005, end: -0.005), weight: 50),
-        TweenSequenceItem(
-            tween: Tween<double>(begin: -0.005, end: 0.005), weight: 50),
-      ],
-    ).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: Interval(
-          0.0,
-          0.8,
-          curve: SawTooth(animationDurationSeconds * 5),
+          tween: Tween<double>(begin: 0.005, end: -0.005),
+          weight: 50,
         ),
-      ),
-    );
+        TweenSequenceItem(
+          tween: Tween<double>(begin: -0.005, end: 0.005),
+          weight: 50,
+        ),
+      ],
+    ).animate(CurvedAnimation(
+        parent: controller,
+        curve: const Interval(0.0, 0.8,
+            curve: SawTooth(animationDurationSeconds * 5))));
 
     glowScaleAnimation = TweenSequence(
       [
-        TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1), weight: 50),
-        TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0), weight: 50),
+        TweenSequenceItem(
+          tween: Tween<double>(begin: 0, end: 1),
+          weight: 50,
+        ),
+        TweenSequenceItem(
+          tween: Tween<double>(begin: 1, end: 0),
+          weight: 50,
+        ),
       ],
-    ).animate(
-      CurvedAnimation(
+    ).animate(CurvedAnimation(
         parent: controller,
-        curve: Interval(
+        curve: const Interval(
           0.8,
           0.9,
-        ),
-      ),
-    );
+        )));
   }
 
   void animate() {
@@ -117,11 +115,11 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return DecoratedBox(
-          decoration: BoxDecoration(
-              image: DecorationImage(
-            image: AssetImage(AppImages.starsPatten),
-            repeat: ImageRepeat.repeat,
-          )),
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage(AppImages.starsPatten),
+                repeat: ImageRepeat.repeat),
+          ),
           child: Stack(
             children: [
               Align(
@@ -167,8 +165,8 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
               Positioned(
                 top: 70,
                 left: constraints.maxWidth / 2 - 40,
-                child: ScaleTransition(
-                  scale: glowScaleAnimation,
+                child: FadeTransition(
+                  opacity: glowScaleAnimation,
                   child: Image.asset(
                     AppImages.starGlow,
                     height: 50,

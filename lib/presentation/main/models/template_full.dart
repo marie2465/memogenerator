@@ -4,7 +4,7 @@ class TemplateFull extends Equatable {
   final String id;
   final String fullImagePath;
 
-  TemplateFull({
+  const TemplateFull({
     required this.id,
     required this.fullImagePath,
   });

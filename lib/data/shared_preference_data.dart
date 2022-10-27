@@ -11,15 +11,14 @@ class SharedPreferenceData {
 
   SharedPreferenceData._internal();
 
-  Future<bool> setMemes(final List<String> memes) async =>
-      setItems(memeKey, memes);
+  Future<bool> setMemes(final List<String> memes) => setItems(memeKey, memes);
 
-  Future<List<String>> getMemes() async => getItems(memeKey);
+  Future<List<String>> getMemes() => getItems(memeKey);
 
-  Future<bool> setTemplates(final List<String> templates) async =>
+  Future<bool> setTemplates(final List<String> templates) =>
       setItems(templateKey, templates);
 
-  Future<List<String>> getTemplates() async => getItems(templateKey);
+  Future<List<String>> getTemplates() => getItems(templateKey);
 
   Future<bool> setItems(
     final String key,

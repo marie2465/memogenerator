@@ -18,8 +18,7 @@ class TemplatesRepository {
 
   Future<bool> addToTemplates(final Template newTemplate) async {
     final templates = await getTemplates();
-    final templateIndex =
-        templates.indexWhere((template) => template.id == newTemplate.id);
+    final templateIndex = templates.indexWhere((template) => template.id == newTemplate.id);
     if (templateIndex == -1) {
       templates.add(newTemplate);
     } else {
@@ -55,8 +54,7 @@ class TemplatesRepository {
   }
 
   Future<bool> _setTemplates(final List<Template> templates) async {
-    final rawTemplates =
-        templates.map((template) => json.encode(template.toJson())).toList();
+    final rawTemplates = templates.map((template) => json.encode(template.toJson())).toList();
     return _setRawTemplates(rawTemplates);
   }
 
