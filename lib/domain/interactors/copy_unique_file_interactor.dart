@@ -34,7 +34,7 @@ class CopyUniqueFileInteractor {
     if (oldFileWithTheSameName == null) {
       // Файлов с таким названием нет. Сохраняем файл в документы
       await tempFile.copy(newImagePath);
-      return newImagePath;
+      return imageName;
     }
     final oldFileLength = await (oldFileWithTheSameName as File).length();
     final newFileLength = await tempFile.length();

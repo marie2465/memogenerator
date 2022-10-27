@@ -7,6 +7,7 @@ import 'package:memogenerator/easter_egg/easter_egg_page.dart';
 import 'package:memogenerator/presentation/create_meme/create_meme_page.dart';
 import 'package:memogenerator/presentation/main/main_bloc.dart';
 import 'package:memogenerator/presentation/main/memes_with_docs_path.dart';
+import 'package:memogenerator/presentation/main/models/meme_thumbnail.dart';
 import 'package:memogenerator/presentation/main/models/template_full.dart';
 import 'package:memogenerator/presentation/widgets/app_button.dart';
 import 'package:memogenerator/resources/app_colors.dart';
@@ -19,13 +20,21 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage>
+    with SingleTickerProviderStateMixin {
   late MainBloc bloc;
+  late TabController tabController;
+
+  double tabIndex = 0;
 
   @override
   void initState() {
     super.initState();
     bloc = MainBloc();
+    tabController = TabController(length: 2, vsync: this);
+    tabController.animation!.addListener(() {
+      setState(() => tabIndex = tabController.animation!.value);
+    });
   }
 
   @override
@@ -37,44 +46,51 @@ class _MainPageState extends State<MainPage> {
           final goBack = await showConfirmationExitDialog(context);
           return goBack ?? false;
         },
-        child: DefaultTabController(
-          length: 2,
-          child: Scaffold(
-            appBar: AppBar(
-              centerTitle: true,
-              backgroundColor: AppColors.lemon,
-              foregroundColor: AppColors.darkGrey,
-              title: GestureDetector(
-                onLongPress: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const EasterEggPage(),
-                    ),
-                  );
-                },
-                child: Text(
-                  "Мемогенератор",
-                  style: GoogleFonts.seymourOne(fontSize: 24),
-                ),
-              ),
-              bottom: TabBar(
-                labelColor: AppColors.darkGrey,
-                indicatorColor: AppColors.fuchsia,
-                indicatorWeight: 3,
-                tabs: [
-                  Tab(text: "Созданные".toUpperCase()),
-                  Tab(text: "Шаблоны".toUpperCase()),
-                ],
+        child: Scaffold(
+          appBar: AppBar(
+            centerTitle: true,
+            backgroundColor: AppColors.lemon,
+            foregroundColor: AppColors.darkGrey,
+            title: GestureDetector(
+              onLongPress: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const EasterEggPage(),
+                  ),
+                );
+              },
+              child: Text(
+                "Мемогенератор",
+                style: GoogleFonts.seymourOne(fontSize: 24),
               ),
             ),
-            body: TabBarView(
-              children: [
-                SafeArea(child: CreatedMemesGrid()),
-                SafeArea(child: TemplatesGrid()),
+            bottom: TabBar(
+              controller: tabController,
+              labelColor: AppColors.darkGrey,
+              indicatorColor: AppColors.fuchsia,
+              indicatorWeight: 3,
+              tabs: [
+                Tab(text: "Созданные".toUpperCase()),
+                Tab(text: "Шаблоны".toUpperCase()),
               ],
             ),
-            floatingActionButton: const CreateMemeFab(),
           ),
+          body: TabBarView(
+            controller: tabController,
+            children: const [
+              SafeArea(child: CreatedMemesGrid()),
+              SafeArea(child: TemplatesGrid()),
+            ],
+          ),
+          floatingActionButton: tabIndex <= 0.5
+              ? Transform.scale(
+                  scale: 1 - tabIndex / 0.5,
+                  child: const CreateMemeFab(),
+                )
+              : Transform.scale(
+                  scale: (tabIndex - 0.5) / 0.5,
+                  child: const CreateTemplateFab(),
+                ),
         ),
       ),
     );
@@ -137,7 +153,26 @@ class CreateMemeFab extends StatelessWidget {
       },
       backgroundColor: AppColors.fuchsia,
       icon: const Icon(Icons.add, color: Colors.white),
-      label: const Text("Создать"),
+      label: const Text("Мем"),
+    );
+  }
+}
+
+class CreateTemplateFab extends StatelessWidget {
+  const CreateTemplateFab({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = Provider.of<MainBloc>(context, listen: false);
+    return FloatingActionButton.extended(
+      onPressed: () async {
+        await bloc.selectMeme();
+      },
+      backgroundColor: AppColors.fuchsia,
+      icon: const Icon(Icons.add, color: Colors.white),
+      label: const Text("Шаблон"),
     );
   }
 }
@@ -148,21 +183,20 @@ class CreatedMemesGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = Provider.of<MainBloc>(context, listen: false);
-    return StreamBuilder<MemesWithDocsPath>(
-      stream: bloc.observeMemesWithDocsPath(),
+    return StreamBuilder<List<MemeThumbnail>>(
+      stream: bloc.observeMemes(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const SizedBox.shrink();
         }
-        final items = snapshot.requireData.memes;
-        final docsPath = snapshot.requireData.docsPath;
+        final items = snapshot.requireData;
         return GridView.extent(
           maxCrossAxisExtent: 180,
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           children: items.map((item) {
-            return MemeGridItem(meme: item, docsPath: docsPath);
+            return MemeGridItem(memeThumbnail: item);
           }).toList(),
         );
       },
@@ -173,36 +207,105 @@ class CreatedMemesGrid extends StatelessWidget {
 class MemeGridItem extends StatelessWidget {
   const MemeGridItem({
     Key? key,
-    required this.meme,
-    required this.docsPath,
+    required this.memeThumbnail,
   }) : super(key: key);
 
-  final String docsPath;
-  final Meme meme;
+  final MemeThumbnail memeThumbnail;
 
   @override
   Widget build(BuildContext context) {
-    final imageFile = File("$docsPath${Platform.pathSeparator}${meme.id}.png");
+    final bloc = Provider.of<MainBloc>(context, listen: false);
+    final imageFile = File(memeThumbnail.fullImageUrl);
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) {
-              return CreateMemePage(id: meme.id);
+              return CreateMemePage(id: memeThumbnail.memeId);
             },
           ),
         );
       },
-      child: Container(
-          alignment: Alignment.centerLeft,
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.darkGrey, width: 1),
-          ),
-          child: imageFile.existsSync()
-              ? Image.file(
-                  File("$docsPath${Platform.pathSeparator}${meme.id}.png"))
-              : Text(meme.id)),
+      child: Stack(
+        children: [
+          Container(
+              alignment: Alignment.centerLeft,
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.darkGrey, width: 1),
+              ),
+              child: imageFile.existsSync()
+                  ? Image.file(imageFile)
+                  : Text(memeThumbnail.memeId)),
+          Positioned(
+            bottom: 4,
+            right: 4,
+            child: DeleteButton(
+              itemName: "мем",
+              onDeleteAction: () => bloc.deleteMeme(memeThumbnail.memeId),
+            ),
+          )
+        ],
+      ),
     );
+  }
+}
+
+class DeleteButton extends StatelessWidget {
+  final String itemName;
+  final VoidCallback onDeleteAction;
+
+  const DeleteButton(
+      {Key? key, required this.itemName, required this.onDeleteAction})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        final delete = await showConfirmationDeleteDialog(context) ?? false;
+        if (delete) {
+          onDeleteAction();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.darkGrey38,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.delete_outline,
+          size: 24,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> showConfirmationDeleteDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Удалить $itemName?"),
+            content: Text("Выбранный $itemName будет удален навсегда"),
+            actions: [
+              AppButton(
+                onTap: () {
+                  Navigator.of(context).pop(false);
+                },
+                text: "Отмена",
+                color: AppColors.darkGrey,
+              ),
+              AppButton(
+                onTap: () {
+                  Navigator.of(context).pop(true);
+                },
+                text: "Удалить",
+              ),
+            ],
+          );
+        });
   }
 }
 
@@ -244,6 +347,7 @@ class TemplateGridItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageFile = File(template.fullImagePath);
+    final bloc = Provider.of<MainBloc>(context, listen: false);
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -254,12 +358,27 @@ class TemplateGridItem extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        alignment: Alignment.centerLeft,
-        decoration: BoxDecoration(
-            border: Border.all(color: AppColors.darkGrey, width: 1)),
-        child:
-            imageFile.existsSync() ? Image.file(imageFile) : Text(template.id),
+      child: Stack(
+        children: [
+          Container(
+            alignment: Alignment.centerLeft,
+            decoration: BoxDecoration(
+                border: Border.all(color: AppColors.darkGrey, width: 1)),
+            child: imageFile.existsSync()
+                ? Image.file(imageFile)
+                : Text(template.id),
+          ),
+          Positioned(
+            bottom: 4,
+            right: 4,
+            child: DeleteButton(
+              itemName: "шаблон",
+              onDeleteAction: () {
+                bloc.deleteTemplate(template.id);
+              },
+            ),
+          )
+        ],
       ),
     );
   }
