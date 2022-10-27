@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:memogenerator/data/models/meme.dart';
-import 'package:memogenerator/data/repositories/list_with_ids)reactive_repository.dart';
+import 'package:memogenerator/data/repositories/list_with_ids_reactive_repository.dart';
 import 'package:memogenerator/data/shared_preference_data.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
